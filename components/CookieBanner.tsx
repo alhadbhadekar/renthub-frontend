@@ -21,7 +21,7 @@ export default function CookieBanner() {
   return (
     <div
       className="
-        fixed bottom-4 left-1/2 -translate-x-1/2
+        fixed bottom-[110px] left-1/2 -translate-x-1/2
         w-[90%] max-w-xl
         bg-white/20
         backdrop-blur-md
@@ -29,7 +29,7 @@ export default function CookieBanner() {
         text-white
         p-5 rounded-xl
         shadow-lg
-        z-50
+        z-[100]
       "
     >
       <p className="text-white/90 text-sm mb-3">

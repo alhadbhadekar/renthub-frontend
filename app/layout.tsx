@@ -52,11 +52,11 @@ export default async function RootLayout({
           <WeatherWrapper themeName={themeName} backgroundUrl={backgroundUrl}>
             <Navbar />
             <CookieBanner />
-            <main className="pb-54">{children}</main>
+            <main className="pb-[220px]">{children}</main>
             <Footer />
           </WeatherWrapper>
         </AuthProvider>
       </body>
-          </html>
+    </html>
   );
 }
