@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react"; // 🔑 Import useRef
 import { HiBell, HiOutlineBell } from "react-icons/hi2"; 
 import Link from "next/link";
 
@@ -18,6 +18,9 @@ const NOTIFICATIONS_STORAGE_KEY = "renthub_notifications";
 export default function NotificationsBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  
+  // 🔑 1. Create a ref for the component's root div
+  const bellRef = useRef<HTMLDivElement>(null); 
 
   // --- Load Notifications from LocalStorage ---
   useEffect(() => {
@@ -30,11 +33,27 @@ export default function NotificationsBell() {
       }
     } catch (error) {
       console.error("Failed to load notifications:", error);
-      // Clear potentially corrupt data
       localStorage.removeItem(NOTIFICATIONS_STORAGE_KEY);
       setNotifications([]);
     }
-  }, []);
+    
+    // 🔑 2. Add global click listener when the component mounts
+    function handleClickOutside(event: MouseEvent) {
+      // Check if the click occurred outside the referenced element
+      if (bellRef.current && !bellRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+
+    // Attach the listener to the document
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // 🔑 3. Clean up the listener when the component unmounts
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+
+  }, []); // Run only once
 
   // Calculate unread count
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -47,7 +66,8 @@ export default function NotificationsBell() {
   };
 
   return (
-    <div className="relative inline-block text-left">
+    // 🔑 4. Attach the ref to the root div
+    <div className="relative inline-block text-left" ref={bellRef}>
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
@@ -94,12 +114,10 @@ export default function NotificationsBell() {
               <p className="p-4 text-gray-500 text-sm">You're all caught up! No new notifications.</p>
             ) : (
               notifications.slice(0, 5).map((notif) => (
-                // ✅ FIX: Check if notif.link is a non-empty string.
-                // If the link is valid, render it as a clickable Next.js <Link>.
                 notif.link && typeof notif.link === 'string' && notif.link.length > 0 ? (
                     <Link
                       key={notif.id}
-                      href={notif.link} // Now guaranteed to be a string
+                      href={notif.link} 
                       onClick={() => {
                         setIsOpen(false);
                       }}
@@ -109,8 +127,6 @@ export default function NotificationsBell() {
                       {notif.message}
                     </Link>
                 ) : (
-                    // 💡 Fallback: If the link is missing, render as a non-clickable <div>.
-                    // Removed the explicit "(Link Missing)" text here for a cleaner look.
                     <div
                       key={notif.id}
                       className={`block px-4 py-3 text-sm cursor-default ${notif.read ? 'text-gray-600' : 'font-medium text-gray-900 bg-blue-50'}`}
